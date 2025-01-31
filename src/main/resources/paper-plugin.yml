@@ -1,0 +1,13 @@
+name: MobWaves
+version: '1.0'
+main: dev.marten_mrfcyt.mobWaves.MobWaves
+api-version: '1.20'
+prefix: MobWaves
+load: STARTUP
+authors: [ Marten_mrfcyt ]
+description: A MobWaves plugin by Marten_mrfcyt
+dependencies:
+  server:
+    MythicMobs:
+      load: OMIT
+      required: true
