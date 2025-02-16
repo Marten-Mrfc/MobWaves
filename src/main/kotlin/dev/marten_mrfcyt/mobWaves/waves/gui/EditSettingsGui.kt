@@ -2,6 +2,7 @@ package dev.marten_mrfcyt.mobWaves.waves.gui
 
 import dev.marten_mrfcyt.mobWaves.utils.asMini
 import dev.marten_mrfcyt.mobWaves.utils.gui.Gui
+import dev.marten_mrfcyt.mobWaves.waves.Wave
 import dev.marten_mrfcyt.mobWaves.waves.WaveModifier
 import dev.marten_mrfcyt.mobWaves.waves.WaveRound
 import org.bukkit.Material
@@ -9,13 +10,16 @@ import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.ClickType
 
-fun openSettings(round: WaveRound, source: Player) {
+fun openSettings(round: WaveRound, source: Player, wave: Wave) {
     val gui = Gui("EditSettingsGui".asMini(), 9 * 3)
-    loadSettings(round, source, gui)
+    loadSettings(round, source, gui, wave)
+    gui.addBackButton(22) { source ->
+        WaveRoundGui(wave, round, source)
+    }
     gui.open(source)
 }
 
-private fun loadSettings(round: WaveRound, source: Player, gui: Gui) {
+private fun loadSettings(round: WaveRound, source: Player, gui: Gui, wave: Wave) {
     fun addItem(
         material: Material,
         name: String,
@@ -30,7 +34,7 @@ private fun loadSettings(round: WaveRound, source: Player, gui: Gui) {
             executes { event: InventoryClickEvent ->
                 event.isCancelled = true
                 onClick(event)
-                openSettings(round, source)
+                openSettings(round, source, wave)
             }
         }
     }
@@ -49,7 +53,7 @@ private fun loadSettings(round: WaveRound, source: Player, gui: Gui) {
         Material.CLOCK,
         "<yellow>Wave Delay: ${round.waveDelay}",
         listOf("Right-click to increase", "Left-click to decrease"),
-        14
+        13
     ) { event ->
         val newWaveDelay = if (event.click == ClickType.RIGHT) round.waveDelay + 1 else round.waveDelay - 1
         WaveModifier().modifyWaveRound(round, newWaveDelay) { waveDelay = it }

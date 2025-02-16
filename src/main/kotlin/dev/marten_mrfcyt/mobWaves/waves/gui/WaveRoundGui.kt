@@ -24,7 +24,7 @@ class WaveRoundGui(private val wave: Wave, private val round: WaveRound, private
                 executes { event ->
                     event.isCancelled = true
                     event.whoClicked.message("Edit Mobs")
-                    open(round, source as Player, 0, 0)
+                    open(round, source as Player, 0, 0, wave)
                 }
             }
             item(Material.WITHER_SKELETON_SKULL) {
@@ -34,7 +34,7 @@ class WaveRoundGui(private val wave: Wave, private val round: WaveRound, private
                 executes { event ->
                     event.isCancelled = true
                     event.whoClicked.message("Edit Bosses")
-                    openBosses(round, source as Player, 0, 0)
+                    openBosses(round, source as Player, 0, 0, wave)
                 }
             }
             item(Material.REDSTONE_LAMP) {
@@ -44,7 +44,7 @@ class WaveRoundGui(private val wave: Wave, private val round: WaveRound, private
                 executes { event ->
                     event.isCancelled = true
                     event.whoClicked.message("Edit Round Settings")
-                    openSettings(round, source as Player)
+                    openSettings(round, source as Player, wave)
                 }
             }
             item(Material.RED_CONCRETE) {
@@ -58,6 +58,9 @@ class WaveRoundGui(private val wave: Wave, private val round: WaveRound, private
                     WaveGui(wave, source)
                 }
             }
+        }
+        gui.addBackButton(13) { source ->
+            WaveGui(wave, source)
         }
         gui.open(source as Player)
     }

@@ -4,6 +4,7 @@ import dev.marten_mrfcyt.mobWaves.utils.*
 import dev.marten_mrfcyt.mobWaves.utils.external.getAllNotWaveBosses
 import dev.marten_mrfcyt.mobWaves.utils.external.getWaveBosses
 import dev.marten_mrfcyt.mobWaves.utils.gui.Gui
+import dev.marten_mrfcyt.mobWaves.waves.Wave
 import dev.marten_mrfcyt.mobWaves.waves.WaveModifier
 import dev.marten_mrfcyt.mobWaves.waves.WaveRound
 import io.lumine.mythic.api.mobs.MythicMob
@@ -11,14 +12,17 @@ import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 
-fun openBosses(round: WaveRound, source: Player, mythicPage: Int = 0, wavePage: Int = 0) {
+fun openBosses(round: WaveRound, source: Player, mythicPage: Int = 0, wavePage: Int = 0, wave: Wave) {
     val gui = Gui("EditBossGui".asMini(), 9 * 5)
     loadDecoration(gui)
-    loadBosses(round, source, getAllNotWaveBosses(round), getWaveBosses(round), gui, mythicPage, wavePage)
+    loadBosses(round, source, getAllNotWaveBosses(round), getWaveBosses(round), gui, mythicPage, wavePage, wave)
+    gui.addBackButton(40) { source ->
+        WaveRoundGui(wave, round, source)
+    }
     gui.open(source)
 }
 
-private fun loadBosses(round: WaveRound, source: Player, mythicMobs: List<MythicMob>, waveMobs: List<MythicMob>, gui: Gui, mythicPage: Int, wavePage: Int) {
+private fun loadBosses(round: WaveRound, source: Player, mythicMobs: List<MythicMob>, waveMobs: List<MythicMob>, gui: Gui, mythicPage: Int, wavePage: Int, wave: Wave) {
     val mobsPerPage = 16
     val waveStartIndex = wavePage * mobsPerPage
     var mythicMobCount = 0
@@ -39,7 +43,7 @@ private fun loadBosses(round: WaveRound, source: Player, mythicMobs: List<Mythic
                         executes { event: InventoryClickEvent ->
                             event.isCancelled = true
                             WaveModifier().modifyWaveRound(round, mob.internalName, WaveRound::addBoss)
-                            openBosses(round, source, mythicPage, wavePage)
+                            openBosses(round, source, mythicPage, wavePage, wave)
                         }
                     }
                 }
@@ -56,7 +60,7 @@ private fun loadBosses(round: WaveRound, source: Player, mythicMobs: List<Mythic
                         executes { event: InventoryClickEvent ->
                             event.isCancelled = true
                             WaveModifier().modifyWaveRound(round, waveMob.internalName, WaveRound::removeBoss)
-                            openBosses(round, source, mythicPage, wavePage)
+                            openBosses(round, source, mythicPage, wavePage, wave)
                         }
                     }
                 }
@@ -64,7 +68,7 @@ private fun loadBosses(round: WaveRound, source: Player, mythicMobs: List<Mythic
         }
     }
 
-    loadPagination(gui, mythicPage, wavePage, mythicMobs.size, waveMobs.size, mobsPerPage, round, source)
+    loadPagination(gui, mythicPage, wavePage, mythicMobs.size, waveMobs.size, mobsPerPage, round, source, wave)
 }
 
 private fun loadDecoration(gui: Gui) {
@@ -91,7 +95,7 @@ private fun loadDecoration(gui: Gui) {
     }
 }
 
-private fun loadPagination(gui: Gui, mythicPage: Int, wavePage: Int, totalMythicMobs: Int, totalWaveMobs: Int, mobsPerPage: Int, round: WaveRound, source: Player) {
+private fun loadPagination(gui: Gui, mythicPage: Int, wavePage: Int, totalMythicMobs: Int, totalWaveMobs: Int, mobsPerPage: Int, round: WaveRound, source: Player, wave: Wave) {
     if (mythicPage > 0) {
         gui.apply {
             item(Material.ARROW) {
@@ -99,7 +103,7 @@ private fun loadPagination(gui: Gui, mythicPage: Int, wavePage: Int, totalMythic
                 slots(36)
                 executes { event: InventoryClickEvent ->
                     event.isCancelled = true
-                    openBosses(round, source, mythicPage - 1, wavePage)
+                    openBosses(round, source, mythicPage - 1, wavePage, wave)
                 }
             }
         }
@@ -111,7 +115,7 @@ private fun loadPagination(gui: Gui, mythicPage: Int, wavePage: Int, totalMythic
                 slots(39)
                 executes { event: InventoryClickEvent ->
                     event.isCancelled = true
-                    openBosses(round, source, mythicPage + 1, wavePage)
+                    openBosses(round, source, mythicPage + 1, wavePage, wave)
                 }
             }
         }
@@ -123,7 +127,7 @@ private fun loadPagination(gui: Gui, mythicPage: Int, wavePage: Int, totalMythic
                 slots(41)
                 executes { event: InventoryClickEvent ->
                     event.isCancelled = true
-                    openBosses(round, source, mythicPage, wavePage - 1)
+                    openBosses(round, source, mythicPage, wavePage - 1, wave)
                 }
             }
         }
@@ -135,7 +139,7 @@ private fun loadPagination(gui: Gui, mythicPage: Int, wavePage: Int, totalMythic
                 slots(44)
                 executes { event: InventoryClickEvent ->
                     event.isCancelled = true
-                    openBosses(round, source, mythicPage, wavePage + 1)
+                    openBosses(round, source, mythicPage, wavePage + 1, wave)
                 }
             }
         }
