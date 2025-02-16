@@ -11,3 +11,6 @@ dependencies:
     MythicMobs:
       load: OMIT
       required: true
+    WorldGuard:
+      load: OMIT
+      required: true
