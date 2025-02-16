@@ -2,7 +2,7 @@ package dev.marten_mrfcyt.mobWaves.utils.external
 
 import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
-import dev.marten_mrfcyt.mobWaves.utils.BlackList
+import dev.marten_mrfcyt.mobWaves.waves.BlackList
 import dev.marten_mrfcyt.mobWaves.utils.SafeChecker
 import gg.flyte.twilight.scheduler.async
 import gg.flyte.twilight.scheduler.sync

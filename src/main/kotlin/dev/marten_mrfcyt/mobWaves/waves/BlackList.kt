@@ -1,10 +1,9 @@
-package dev.marten_mrfcyt.mobWaves.utils
+package dev.marten_mrfcyt.mobWaves.waves
 
 import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import dev.marten_mrfcyt.mobWaves.utils.external.getAllMythicMobs
 import io.lumine.mythic.api.mobs.MythicMob
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 

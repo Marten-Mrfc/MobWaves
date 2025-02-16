@@ -3,6 +3,7 @@ package dev.marten_mrfcyt.mobWaves.waves.gui
 import dev.marten_mrfcyt.mobWaves.utils.*
 import dev.marten_mrfcyt.mobWaves.utils.external.getAllMythicMobs
 import dev.marten_mrfcyt.mobWaves.utils.gui.Gui
+import dev.marten_mrfcyt.mobWaves.waves.BlackList
 import io.lumine.mythic.api.mobs.MythicMob
 import org.bukkit.Material
 import org.bukkit.entity.Player
