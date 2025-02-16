@@ -1,22 +1,24 @@
 package dev.marten_mrfcyt.mobWaves.waves.gui
 
 import dev.marten_mrfcyt.mobWaves.utils.*
+import dev.marten_mrfcyt.mobWaves.utils.external.getAllNotWaveMobs
+import dev.marten_mrfcyt.mobWaves.utils.external.getWaveMobs
 import dev.marten_mrfcyt.mobWaves.utils.gui.Gui
-import dev.marten_mrfcyt.mobWaves.waves.Wave
 import dev.marten_mrfcyt.mobWaves.waves.WaveModifier
+import dev.marten_mrfcyt.mobWaves.waves.WaveRound
 import io.lumine.mythic.api.mobs.MythicMob
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 
-fun open(wave: Wave, source: Player, mythicPage: Int = 0, wavePage: Int = 0) {
+fun open(round: WaveRound, source: Player, mythicPage: Int = 0, wavePage: Int = 0) {
     val gui = Gui("EditMobGui".asMini(), 9 * 5)
     loadDecoration(gui)
-    loadMobs(wave, source, getAllNotWaveMobs(wave), getWaveMobs(wave), gui, mythicPage, wavePage)
+    loadMobs(round, source, getAllNotWaveMobs(round), getWaveMobs(round), gui, mythicPage, wavePage)
     gui.open(source)
 }
 
-private fun loadMobs(wave: Wave, source: Player, mythicMobs: List<MythicMob>, waveMobs: List<MythicMob>, gui: Gui, mythicPage: Int, wavePage: Int) {
+private fun loadMobs(round: WaveRound, source: Player, mythicMobs: List<MythicMob>, waveMobs: List<MythicMob>, gui: Gui, mythicPage: Int, wavePage: Int) {
     val mobsPerPage = 16
     val waveStartIndex = wavePage * mobsPerPage
     val mythicStartIndex = mythicPage * mobsPerPage
@@ -36,8 +38,8 @@ private fun loadMobs(wave: Wave, source: Player, mythicMobs: List<MythicMob>, wa
                         slots(row * 9 + i)
                         executes { event: InventoryClickEvent ->
                             event.isCancelled = true
-                            WaveModifier().modifyWave(wave, mob.internalName, Wave::addMob)
-                            open(wave, source, mythicPage, wavePage)
+                            WaveModifier().modifyWaveRound(round, mob.internalName, WaveRound::addMob)
+                            open(round, source, mythicPage, wavePage)
                         }
                     }
                 }
@@ -53,8 +55,8 @@ private fun loadMobs(wave: Wave, source: Player, mythicMobs: List<MythicMob>, wa
                         slots(row * 9 + i)
                         executes { event: InventoryClickEvent ->
                             event.isCancelled = true
-                            WaveModifier().modifyWave(wave, waveMob.internalName, Wave::removeMob)
-                            open(wave, source, mythicPage, wavePage)
+                            WaveModifier().modifyWaveRound(round, waveMob.internalName, WaveRound::removeMob)
+                            open(round, source, mythicPage, wavePage)
                         }
                     }
                 }
@@ -62,7 +64,7 @@ private fun loadMobs(wave: Wave, source: Player, mythicMobs: List<MythicMob>, wa
         }
     }
 
-    loadPagination(gui, mythicPage, wavePage, mythicMobs.size, waveMobs.size, mobsPerPage, wave, source)
+    loadPagination(gui, mythicPage, wavePage, mythicMobs.size, waveMobs.size, mobsPerPage, round, source)
 }
 
 private fun loadDecoration(gui: Gui) {
@@ -89,7 +91,7 @@ private fun loadDecoration(gui: Gui) {
     }
 }
 
-private fun loadPagination(gui: Gui, mythicPage: Int, wavePage: Int, totalMythicMobs: Int, totalWaveMobs: Int, mobsPerPage: Int, wave: Wave, source: Player) {
+private fun loadPagination(gui: Gui, mythicPage: Int, wavePage: Int, totalMythicMobs: Int, totalWaveMobs: Int, mobsPerPage: Int, round: WaveRound, source: Player) {
     if (mythicPage > 0) {
         gui.apply {
             item(Material.ARROW) {
@@ -97,7 +99,7 @@ private fun loadPagination(gui: Gui, mythicPage: Int, wavePage: Int, totalMythic
                 slots(36)
                 executes { event: InventoryClickEvent ->
                     event.isCancelled = true
-                    open(wave, source, mythicPage - 1, wavePage)
+                    open(round, source, mythicPage - 1, wavePage)
                 }
             }
         }
@@ -109,7 +111,7 @@ private fun loadPagination(gui: Gui, mythicPage: Int, wavePage: Int, totalMythic
                 slots(39)
                 executes { event: InventoryClickEvent ->
                     event.isCancelled = true
-                    open(wave, source, mythicPage + 1, wavePage)
+                    open(round, source, mythicPage + 1, wavePage)
                 }
             }
         }
@@ -121,7 +123,7 @@ private fun loadPagination(gui: Gui, mythicPage: Int, wavePage: Int, totalMythic
                 slots(41)
                 executes { event: InventoryClickEvent ->
                     event.isCancelled = true
-                    open(wave, source, mythicPage, wavePage - 1)
+                    open(round, source, mythicPage, wavePage - 1)
                 }
             }
         }
@@ -133,7 +135,7 @@ private fun loadPagination(gui: Gui, mythicPage: Int, wavePage: Int, totalMythic
                 slots(44)
                 executes { event: InventoryClickEvent ->
                     event.isCancelled = true
-                    open(wave, source, mythicPage, wavePage + 1)
+                    open(round, source, mythicPage, wavePage + 1)
                 }
             }
         }

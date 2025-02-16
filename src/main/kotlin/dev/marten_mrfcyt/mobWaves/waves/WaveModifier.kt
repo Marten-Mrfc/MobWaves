@@ -3,6 +3,7 @@ package dev.marten_mrfcyt.mobWaves.waves
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
+import java.util.UUID
 
 class WaveModifier {
     private val gson = Gson()
@@ -24,7 +25,7 @@ class WaveModifier {
     }
 
     fun createWave(name: String): Boolean {
-        val wave = Wave(name, mutableListOf())
+        val wave = Wave(name, mutableListOf(WaveRound()))
         waves.add(wave)
         saveWaves()
         return true
@@ -51,6 +52,13 @@ class WaveModifier {
     fun <T> modifyWave(wave: Wave, item: T, action: Wave.(T) -> Unit) {
         waves.find { it.name == wave.name }?.action(item)
         wave.action(item)
+        saveWaves()
+    }
+    fun <T> modifyWaveRound(waveRound: WaveRound, item: T, action: WaveRound.(T) -> Unit) {
+        waves.flatMap { it.rounds }
+            .find { it.id == waveRound.id }
+            ?.action(item)
+        waveRound.action(item)
         saveWaves()
     }
 }

@@ -24,3 +24,8 @@ fun CommandSender.message(message: String, player: Player? = null) {
     val formattedMessage = "<gold><bold>MobWaves</bold><gray> | <white> $message"
     sendMessage(formattedMessage.asMini())
 }
+
+fun CommandSender.action(message: String, player: Player? = null) {
+    val formattedMessage = "<gray><italic>$message"
+    sendActionBar(formattedMessage.asMini())
+}

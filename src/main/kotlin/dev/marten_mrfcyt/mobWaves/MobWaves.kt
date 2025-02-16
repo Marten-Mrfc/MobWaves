@@ -1,8 +1,11 @@
 package dev.marten_mrfcyt.mobWaves
 
+import dev.marten_mrfcyt.mobWaves.utils.external.WorldGuardUtil
 import dev.marten_mrfcyt.mobWaves.utils.gui.InventoryClickListener
 import dev.marten_mrfcyt.mobWaves.waves.WaveModifier
 import dev.marten_mrfcyt.mobWaves.waves.handler.MobDeathListener
+import dev.marten_mrfcyt.mobWaves.zones.ZoneListener
+import gg.flyte.twilight.Twilight
 import lirand.api.architecture.KotlinPlugin
 import lirand.api.extensions.server.registerEvents
 
@@ -14,15 +17,23 @@ class MobWaves : KotlinPlugin() {
         logger.info("----------------------------")
         logger.info("--- MobWaves is starting ---")
         instance = this
-        logger.info("Registering commands")
+        reloadConfig()
+        Twilight.plugin = this
+        saveConfig()
+        logger.info("Instance has been set, registering commands")
         mobWavesCommands()
-        logger.info("Commands registered successfully!")
-        logger.info("Registering events")
+        logger.info("WaveCommands registered successfully, registering ZoneCommands")
+        zoneCommands()
+        logger.info("Commands registered successfully, loading waves")
+        logger.info("Loaded: ${WaveModifier().listWaves().size} waves, registering events")
         registerEvents(
             InventoryClickListener(this),
-            MobDeathListener()
+            MobDeathListener(),
+            ZoneListener(this)
         )
-        logger.info("Events registered successfully!")
+        logger.info("Events registered successfully, registering flags")
+        WorldGuardUtil.registerFlags()
+        logger.info("Flags registered successfully")
         logger.info("--- MobWaves has started ---")
         logger.info("----------------------------")
     }
