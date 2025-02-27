@@ -17,7 +17,7 @@ data class PlayerSession(
     var xpAccumulator: Double = 0.0,
     var isInXPZone: Boolean = false,
     var currentXPZone: String? = null,
-    var maxXPTotal: Int = 100
+    val maxXPTotal: Int = MobWaves.instance.config.getInt("max-xp-total", 100)
 ) {
     init {
         MobWaves.instance.logger.info(this.toString())
