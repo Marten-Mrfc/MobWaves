@@ -20,4 +20,13 @@ object ZoneUtil {
         val applicableRegions = regionManager.getApplicableRegions(BukkitAdapter.asBlockVector(location))
         return applicableRegions.firstNotNullOfOrNull { it.getFlag(WorldGuardUtil.WAVE_FLAG) }
     }
+
+    fun getRegionNameOfXpZone(location: Location): String? {
+        val regionManager = ZoneManager.getRegionManager(location.world) ?: return null
+        val applicableRegions = regionManager.getApplicableRegions(BukkitAdapter.asBlockVector(location))
+        if (applicableRegions.any { it.getFlag(WorldGuardUtil.XP_ZONE_FLAG) == StateFlag.State.ALLOW }) {
+            return applicableRegions.firstNotNullOfOrNull { it.id }
+        }
+        return null
+    }
 }

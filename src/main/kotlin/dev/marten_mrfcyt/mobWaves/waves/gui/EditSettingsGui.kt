@@ -1,17 +1,18 @@
 package dev.marten_mrfcyt.mobWaves.waves.gui
 
-import dev.marten_mrfcyt.mobWaves.utils.asMini
-import dev.marten_mrfcyt.mobWaves.utils.gui.Gui
+import mlib.api.utilities.*
 import dev.marten_mrfcyt.mobWaves.waves.Wave
 import dev.marten_mrfcyt.mobWaves.waves.WaveModifier
 import dev.marten_mrfcyt.mobWaves.waves.WaveRound
+import mlib.api.gui.Gui
+import mlib.api.gui.GuiSize
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.ClickType
 
 fun openSettings(round: WaveRound, source: Player, wave: Wave) {
-    val gui = Gui("EditSettingsGui".asMini(), 9 * 3)
+    val gui = Gui("EditSettingsGui".asMini(), GuiSize.ROW_THREE)
     loadSettings(round, source, gui, wave)
     gui.addBackButton(22) { source ->
         WaveRoundGui(wave, round, source)
@@ -31,7 +32,7 @@ private fun loadSettings(round: WaveRound, source: Player, gui: Gui, wave: Wave)
             name(name.asMini())
             description(description.map { it.asMini() })
             slots(slot)
-            executes { event: InventoryClickEvent ->
+            onClick { event: InventoryClickEvent ->
                 event.isCancelled = true
                 onClick(event)
                 openSettings(round, source, wave)

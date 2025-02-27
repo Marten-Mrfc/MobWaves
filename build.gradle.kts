@@ -23,21 +23,19 @@ repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven(url = "https://mvn.lumine.io/repository/maven-public/")
     maven("https://maven.enginehub.org/repo/")
-    maven("https://repo.flyte.gg/releases")
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("com.github.marten-mrfc:LirandAPI:621cd466ce")
     compileOnly("net.kyori:adventure-text-minimessage:4.13.1")
     compileOnly("com.mojang:brigadier:1.0.18")
-    implementation("gg.flyte:twilight:1.1.17")
     compileOnly("io.lumine:Mythic-Dist:5.6.1")
     implementation("com.google.code.gson:gson:2.8.9")
     implementation(kotlin("reflect"))
     implementation("org.reflections:reflections:0.10.2")
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.10")
+    implementation("mlib.api:MLib:0.0.1")
 }
 
 val targetJavaVersion = 21

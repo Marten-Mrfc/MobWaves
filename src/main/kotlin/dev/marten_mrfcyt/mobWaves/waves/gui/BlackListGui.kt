@@ -1,16 +1,17 @@
 package dev.marten_mrfcyt.mobWaves.waves.gui
 
-import dev.marten_mrfcyt.mobWaves.utils.*
+import mlib.api.utilities.*
 import dev.marten_mrfcyt.mobWaves.utils.external.getAllMythicMobs
-import dev.marten_mrfcyt.mobWaves.utils.gui.Gui
 import dev.marten_mrfcyt.mobWaves.waves.BlackList
 import io.lumine.mythic.api.mobs.MythicMob
+import mlib.api.gui.Gui
+import mlib.api.gui.GuiSize
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 
 fun openBlackList(source: Player, mythicPage: Int = 0, blacklistPage: Int = 0) {
-    val gui = Gui("BlackListGui".asMini(), 9 * 5)
+    val gui = Gui("BlackListGui".asMini(), GuiSize.ROW_FIVE)
     loadDecoration(gui)
 
     val allMobs = getAllMythicMobs()
@@ -41,7 +42,7 @@ private fun loadMobs(source: Player, mythicMobs: List<MythicMob>, blacklistedMob
                         name(mob.internalName.asMini())
                         description(listOf("Click to blacklist this mob".asMini()))
                         slots(row * 9 + i)
-                        executes { event: InventoryClickEvent ->
+                        onClick { event: InventoryClickEvent ->
                             event.isCancelled = true
                             BlackList.addBlackListedMob(mob)
                             openBlackList(source, mythicPage, blacklistPage)
@@ -58,7 +59,7 @@ private fun loadMobs(source: Player, mythicMobs: List<MythicMob>, blacklistedMob
                         name(blacklistedMob.internalName.asMini())
                         description(listOf("Click to remove from blacklist".asMini()))
                         slots(row * 9 + i)
-                        executes { event: InventoryClickEvent ->
+                        onClick { event: InventoryClickEvent ->
                             event.isCancelled = true
                             BlackList.removeBlackListedMob(blacklistedMob)
                             openBlackList(source, mythicPage, blacklistPage)
@@ -77,20 +78,20 @@ private fun loadDecoration(gui: Gui) {
         item(Material.GRAY_STAINED_GLASS_PANE) {
             name("".asMini())
             slots(4, 13, 22, 31, 40)
-            executes { event: InventoryClickEvent -> event.isCancelled = true }
+            onClick { event: InventoryClickEvent -> event.isCancelled = true }
         }
         for(i in 0 until 4) {
             item(Material.RED_STAINED_GLASS_PANE) {
                 name("<dark_purple>Click to <green>blacklist</green> a mob".asMini())
                 slots(4 * 9 + i)
-                executes { event: InventoryClickEvent -> event.isCancelled = true }
+                onClick { event: InventoryClickEvent -> event.isCancelled = true }
             }
         }
         for(i in 5 until 9) {
             item(Material.GREEN_STAINED_GLASS_PANE) {
                 name("<dark_purple>Click to <red>remove</red> from blacklist".asMini())
                 slots(4 * 9 + i)
-                executes { event: InventoryClickEvent -> event.isCancelled = true }
+                onClick { event: InventoryClickEvent -> event.isCancelled = true }
             }
         }
     }
@@ -102,7 +103,7 @@ private fun loadPagination(gui: Gui, mythicPage: Int, blacklistPage: Int, totalM
             item(Material.ARROW) {
                 name("<yellow>Previous Available Mobs Page".asMini())
                 slots(36)
-                executes { event: InventoryClickEvent ->
+                onClick { event: InventoryClickEvent ->
                     event.isCancelled = true
                     openBlackList(source, mythicPage - 1, blacklistPage)
                 }
@@ -114,7 +115,7 @@ private fun loadPagination(gui: Gui, mythicPage: Int, blacklistPage: Int, totalM
             item(Material.ARROW) {
                 name("<yellow>Next Available Mobs Page".asMini())
                 slots(39)
-                executes { event: InventoryClickEvent ->
+                onClick { event: InventoryClickEvent ->
                     event.isCancelled = true
                     openBlackList(source, mythicPage + 1, blacklistPage)
                 }
@@ -126,7 +127,7 @@ private fun loadPagination(gui: Gui, mythicPage: Int, blacklistPage: Int, totalM
             item(Material.ARROW) {
                 name("<yellow>Previous Blacklisted Mobs Page".asMini())
                 slots(41)
-                executes { event: InventoryClickEvent ->
+                onClick { event: InventoryClickEvent ->
                     event.isCancelled = true
                     openBlackList(source, mythicPage, blacklistPage - 1)
                 }
@@ -138,7 +139,7 @@ private fun loadPagination(gui: Gui, mythicPage: Int, blacklistPage: Int, totalM
             item(Material.ARROW) {
                 name("<yellow>Next Blacklisted Mobs Page".asMini())
                 slots(44)
-                executes { event: InventoryClickEvent ->
+                onClick { event: InventoryClickEvent ->
                     event.isCancelled = true
                     openBlackList(source, mythicPage, blacklistPage + 1)
                 }
