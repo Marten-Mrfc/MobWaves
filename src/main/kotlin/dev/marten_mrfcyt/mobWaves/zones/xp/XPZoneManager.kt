@@ -15,7 +15,7 @@ object XPZoneManager {
     fun startXPTimer(plugin: MobWaves) {
         object : BukkitRunnable() {
             override fun run() {
-                plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable {
+                plugin.server.scheduler.runTask(plugin, Runnable {
                     SessionManager.getActiveSessions().forEach { session ->
                         try {
                             if (!session.isInXPZone || session.currentXPZone == null) {

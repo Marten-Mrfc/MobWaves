@@ -10,6 +10,7 @@ import dev.marten_mrfcyt.mobWaves.waves.WaveModifier
 import dev.marten_mrfcyt.mobWaves.waves.gui.WaveGui
 import dev.marten_mrfcyt.mobWaves.waves.gui.openBlackList
 import dev.marten_mrfcyt.mobWaves.waves.handler.WaveManager
+import dev.marten_mrfcyt.mobWaves.zones.ZoneVisualizer
 import dev.marten_mrfcyt.mobWaves.zones.xp.XPZoneManager
 import mlib.api.commands.builders.LiteralDSLBuilder
 import mlib.api.commands.builders.command
@@ -21,6 +22,7 @@ import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 
 fun Plugin.mobWavesCommands() = command("wave") {
+    requiresPermissions("mobwaves")
     setupWaves()
 }
 
@@ -65,9 +67,11 @@ private fun LiteralDSLBuilder.setupWaves() {
             }
             executes {
                 val name = getArgument<String>("name")
+                val source = source as Player
                 source.message("Opening the wave editor")
                 val wave = WaveModifier().listWaves().first { it.name == name }
                 WaveGui(wave, source)
+                ZoneVisualizer.updateZonePoints(plugin, source.world)
             }
         }
     }
@@ -187,6 +191,7 @@ private fun stopWaveForPlayer(player: Player, source: Player) {
 }
 
 fun Plugin.zoneCommands() = command("zone") {
+    requiresPermissions("mobwaves")
     setupZones()
 }
 

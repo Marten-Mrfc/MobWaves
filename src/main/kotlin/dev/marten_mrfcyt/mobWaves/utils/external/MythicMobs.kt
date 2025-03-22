@@ -11,10 +11,12 @@ import io.lumine.mythic.bukkit.BukkitAdapter
 import io.lumine.mythic.core.mobs.ActiveMob
 import org.bukkit.Location
 import kotlin.random.Random
+import kotlin.text.get
+
 private lateinit var safeChecker: SafeChecker
 
 fun getAllMythicMobs(): List<MythicMob> {
-    return MythicProvider.get().mobManager.mobTypes.toList()
+    return MythicProvider.get().mobManager.mobTypes.toList().sortedBy { it.internalName }
 }
 
 fun getWaveMobs(round: WaveRound): HashMap<MythicMob, Int> {

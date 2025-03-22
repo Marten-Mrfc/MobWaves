@@ -27,9 +27,9 @@ private fun loadMobs(round: WaveRound, source: Player, mythicMobs: List<MythicMo
     val mobsPerPage = 16
     val waveStartIndex = wavePage * mobsPerPage
     val mythicStartIndex = mythicPage * mobsPerPage
-    val paginatedWaveMobs = waveMobs.keys.drop(waveStartIndex).take(mobsPerPage)
+    val paginatedWaveMobs = waveMobs.keys.sortedBy { it.internalName }.drop(waveStartIndex).take(mobsPerPage)
     var waveMobCount = 0
-    val paginatedMythicMobs = mythicMobs.drop(mythicStartIndex).take(mobsPerPage)
+    val paginatedMythicMobs = mythicMobs.sortedBy { it.internalName }.drop(mythicStartIndex).take(mobsPerPage)
     var mythicMobCount = 0
 
     for (row in 0 until 4) {

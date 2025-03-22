@@ -63,7 +63,6 @@ class Discord {
         var attempt = 0
         val maxAttempts = 5
         val baseDelay = 1000L // 1 second
-
         while (attempt < maxAttempts) {
             try {
                 val connection = URI(webhookUrl).toURL().openConnection() as HttpURLConnection
