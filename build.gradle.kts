@@ -32,8 +32,6 @@ dependencies {
     compileOnly("com.mojang:brigadier:1.0.18")
     compileOnly("io.lumine:Mythic-Dist:5.6.1")
     implementation("com.google.code.gson:gson:2.8.9")
-    implementation(kotlin("reflect"))
-    implementation("org.reflections:reflections:0.10.2")
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.10")
     implementation("mlib.api:MLib:0.0.1")
 }

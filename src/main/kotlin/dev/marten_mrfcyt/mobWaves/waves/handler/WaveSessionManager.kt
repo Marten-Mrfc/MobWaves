@@ -1,5 +1,6 @@
 package dev.marten_mrfcyt.mobWaves.waves.handler
 
+import dev.marten_mrfcyt.mobWaves.session.PersistentSessionManager
 import dev.marten_mrfcyt.mobWaves.session.SessionManager
 import dev.marten_mrfcyt.mobWaves.utils.external.getWaveMobs
 import dev.marten_mrfcyt.mobWaves.utils.external.spawnMythicMob
@@ -12,7 +13,15 @@ import org.bukkit.entity.Creature
 import org.bukkit.entity.Player
 
 object WaveSessionManager {
+    // In WaveSessionManager
     fun startWave(player: Player, wave: Wave) {
+        // First check if it's within allowed play time
+        if (!PersistentSessionManager.isPlayTimeAllowed()) {
+            player.message("Helaas, je kan alleen tussen 18:00 en 00:00 waves spelen.")
+            closeWaveSession(player)
+            return
+        }
+
         val session = SessionManager.getSession(player) ?: return
         val currentRound = session.currentRound
 
@@ -42,9 +51,16 @@ object WaveSessionManager {
     fun onMobDeath(player: Player, mob: ActiveMob) {
         val session = SessionManager.getSession(player) ?: return
         session.waveMobs.remove(mob)
-        println("Mobs over: ${session.waveMobs.size} voor ${player.name}")
+
         if (session.waveMobs.isEmpty()) {
             val wave = session.currentWave ?: return
+
+            // Check if still in allowed play time before continuing
+            if (!PersistentSessionManager.isPlayTimeAllowed()) {
+                player.message("Helaas, je kan alleen tussen 18:00 en 00:00 waves spelen.")
+                closeWaveSession(player)
+                return
+            }
 
             if (session.currentRound >= wave.rounds.size && XPZoneManager.isXPZone(player.location)) {
                 player.message("Wave ${wave.name} is voltooid! Herstart wave...")
@@ -52,7 +68,6 @@ object WaveSessionManager {
                 startWave(player, wave)
             } else {
                 player.message("Ronde ${session.currentRound} is voltooid.")
-                println("Ronde ${session.currentRound} is voltooid voor ${player.name}")
                 session.currentRound++
                 startWave(player, wave)
             }

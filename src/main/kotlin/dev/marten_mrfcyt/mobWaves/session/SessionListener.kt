@@ -5,6 +5,7 @@ import dev.marten_mrfcyt.mobWaves.waves.handler.WaveManager
 import dev.marten_mrfcyt.mobWaves.zones.ZoneHandler
 import dev.marten_mrfcyt.mobWaves.zones.ZoneUtil
 import dev.marten_mrfcyt.mobWaves.zones.xp.XPZoneManager
+import mlib.api.utilities.message
 import org.bukkit.GameMode
 import org.bukkit.Location
 import org.bukkit.entity.Player
@@ -17,6 +18,7 @@ import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerRespawnEvent
 import org.bukkit.event.player.PlayerTeleportEvent
+import org.bukkit.event.server.PluginDisableEvent
 
 class SessionListener(private val plugin: MobWaves) : Listener {
     init {
@@ -24,42 +26,68 @@ class SessionListener(private val plugin: MobWaves) : Listener {
         plugin.server.scheduler.runTaskTimerAsynchronously(plugin, Runnable { ZoneHandler.updateActionBars() }, 0L, 20L)
     }
 
-    private fun cleanupSession(player: Player) {
-        SessionManager.getSession(player)?.apply {
-            currentWave?.name?.let {
-                WaveManager.removeActiveWave(player)
-                ZoneHandler.notifyLeave(player, it)
-            }
-            if (isInXPZone) {
-                ZoneHandler.notifyXPZoneLeave(player)
-                XPZoneManager.removePlayer(player)
-            }
-            SessionManager.removeSession(player)
+    private fun pauseSession(player: Player) {
+        // Instead of clearing the session on death/quit, we now save it
+        val session = SessionManager.getSession(player) ?: return
+
+        if (session.isInXPZone) {
+            ZoneHandler.notifyXPZoneLeave(player)
+            WaveManager.removeActiveWave(player)
+            XPZoneManager.removePlayer(player)
         }
+
+        // No longer removing the session, just saving state
+        PersistentSessionManager.saveSession(session)
     }
 
     private fun isPlayerExempt(player: Player): Boolean =
-        player.gameMode == GameMode.CREATIVE || player.gameMode == GameMode.SPECTATOR || player.isFlying
+        player.gameMode == GameMode.CREATIVE || player.gameMode == GameMode.SPECTATOR || player.isFlying || player.isInvulnerable || player.isDead || player.isInvisible
 
-    @EventHandler fun onPlayerQuit(event: PlayerQuitEvent) = cleanupSession(event.player)
-    @EventHandler fun onPlayerDeath(event: PlayerDeathEvent) = cleanupSession(event.player)
+    @EventHandler
+    fun onPlayerQuit(event: PlayerQuitEvent) {
+        pauseSession(event.player)
+        SessionManager.removeSession(event.player)
+    }
+
+    @EventHandler
+    fun onPlayerDeath(event: PlayerDeathEvent) {
+        // Only pause the session, don't remove it
+        pauseSession(event.player)
+    }
 
     @EventHandler(priority = EventPriority.HIGH)
     fun onPlayerJoin(event: PlayerJoinEvent) {
         val player = event.player
-        cleanupSession(player)
 
         if (!ZoneHandler.isLocationValid(player.location)) return
-        SessionManager.createSession(player)
 
-        ZoneUtil.getWaveName(player.location)?.let { waveName ->
-            ZoneHandler.notifyJoin(player, waveName)
-            WaveManager.getWaveByString(waveName)?.let {
-                WaveManager.addActiveWave(player, it)
+        // Always create/load the session
+        val session = SessionManager.createSession(player)
+        if (isPlayerExempt(player)) {
+            player.message("Je kan niet deelnemen aan waves of XP verdienen in admin-modus.")
+            return
+        }
+        // Only handle wave joining if no active wave AND it's allowed play time
+        if (session.currentWave == null && PersistentSessionManager.isPlayTimeAllowed()) {
+            ZoneUtil.getWaveName(player.location)?.let { waveName ->
+                if (waveName == "NotSet") return
+                ZoneHandler.notifyJoin(player, waveName)
+                WaveManager.getWaveByString(waveName)?.let {
+                    WaveManager.addActiveWave(player, it)
+                }
             }
+        } else if (session.currentWave != null && !PersistentSessionManager.isPlayTimeAllowed()) {
+            // Player has an active wave but it's outside allowed hours
+            player.message("Helaas, je kan alleen tussen 18:00 en 00:00 waves spelen.")
+            WaveManager.removeActiveWave(player)
         }
 
-        handleXPZone(player, player.location, true)
+        // Only handle XP zone joining if it's allowed play time
+        if (PersistentSessionManager.isPlayTimeAllowed()) {
+            handleXPZone(player, player.location, true)
+        } else if (XPZoneManager.isXPZone(player.location)) {
+            player.message("Helaas, je kan alleen tussen 18:00 en 00:00 XP verdienen.")
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -67,7 +95,8 @@ class SessionListener(private val plugin: MobWaves) : Listener {
         if (event.isCancelled) return
 
         if (!ZoneHandler.isLocationValid(event.to)) {
-            cleanupSession(event.player)
+            // Only pause, don't remove
+            pauseSession(event.player)
             return
         }
 
@@ -79,7 +108,7 @@ class SessionListener(private val plugin: MobWaves) : Listener {
     @EventHandler
     fun onPlayerRespawn(event: PlayerRespawnEvent) {
         if (!ZoneHandler.isLocationValid(event.respawnLocation)) {
-            cleanupSession(event.player)
+            pauseSession(event.player)
             return
         }
         handleLocationChange(event.player, event.player.location, event.respawnLocation)
@@ -91,10 +120,21 @@ class SessionListener(private val plugin: MobWaves) : Listener {
         handleLocationChange(event.player, event.from, event.to)
     }
 
+    @EventHandler
+    fun onPluginDisable(event: PluginDisableEvent) {
+        if (event.plugin.name == plugin.name) {
+            // Save all sessions when plugin is disabled
+            SessionManager.saveAllSessions()
+        }
+    }
+
     private fun handleLocationChange(player: Player, from: Location, to: Location) {
         // Create session if needed
         if (SessionManager.getSession(player) == null && ZoneHandler.isLocationValid(to)) {
-            if (isPlayerExempt(player)) return
+            if (isPlayerExempt(player)) {
+                player.message("Je kan niet deelnemen aan waves of XP verdienen in admin-modus.")
+                return
+            }
             SessionManager.createSession(player)
         }
 
@@ -108,17 +148,23 @@ class SessionListener(private val plugin: MobWaves) : Listener {
     private fun handleWaveRegionChange(player: Player, from: Location, to: Location) {
         val oldRegion = ZoneUtil.getWaveName(from)
         val newRegion = ZoneUtil.getWaveName(to)
-
         if (oldRegion == newRegion) return
 
         oldRegion?.let {
-            ZoneHandler.notifyLeave(player, it)
             WaveManager.removeActiveWave(player)
+            if (it != "NotSet") ZoneHandler.notifyLeave(player, it)
         }
-
-        if (isPlayerExempt(player)) return
-
         newRegion?.let {
+            if (it == "NotSet") return
+            // Only proceed if it's within allowed play time
+            if (!PersistentSessionManager.isPlayTimeAllowed()) {
+                player.message("Helaas, je kan alleen tussen 18:00 en 00:00 waves spelen.")
+                return
+            }
+            if (isPlayerExempt(player)) {
+                player.message("Je kan niet deelnemen aan waves of XP verdienen in admin-modus.")
+                return
+            }
             ZoneHandler.notifyJoin(player, it)
             plugin.server.scheduler.runTask(plugin) { _ ->
                 if (player.isOnline) {
@@ -137,6 +183,11 @@ class SessionListener(private val plugin: MobWaves) : Listener {
         if (isOldXPZone == isNewXPZone) return
 
         if (isNewXPZone) {
+            // Check if it's within allowed play time
+            if (!PersistentSessionManager.isPlayTimeAllowed()) {
+                player.message("Helaas, je kan alleen tussen 18:00 en 00:00 XP verdienen.")
+                return
+            }
             handleXPZone(player, to, false)
         } else {
             SessionManager.updateXPZoneStatus(player, false)
@@ -149,12 +200,21 @@ class SessionListener(private val plugin: MobWaves) : Listener {
         if (!XPZoneManager.isXPZone(location)) return
         if (isJoining && isPlayerExempt(player)) return
 
-        SessionManager.updateXPZoneStatus(player, true)
+        // Check if it's within allowed play time
+        if (!PersistentSessionManager.isPlayTimeAllowed()) {
+            player.message("Helaas, je kan alleen tussen 18:00 en 00:00 XP verdienen.")
+            return
+        }
+
+        if (!SessionManager.updateXPZoneStatus(player, true)) {
+            return // Failed to update XP zone status due to time restrictions
+        }
+
         ZoneHandler.notifyXPZoneJoin(player)
 
         val regionName = ZoneUtil.getRegionNameOfXpZone(location)
         if (regionName == null) {
-            println("Region name is null")
+            plugin.logger.warning("Region name is null for XP zone at ${location.blockX}, ${location.blockY}, ${location.blockZ}")
             return
         }
 

@@ -10,16 +10,28 @@ import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.scheduler.BukkitTask
+import java.util.*
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlin.math.sqrt
 
 object ZoneVisualizer {
     private val visualizationTasks = mutableMapOf<World, BukkitTask>()
     private val zonePoints = mutableMapOf<World, List<List<Location>>>()
 
-    private const val VISUALIZATION_INTERVAL = 40L
-    private const val VIEW_DISTANCE = 20.0
-    private const val LINE_DENSITY = 0.5
-    private const val PARTICLE_HEIGHT_OFFSET = 1.0
+    private const val VISUALIZATION_INTERVAL = 20L // Faster update rate
+    private const val VIEW_DISTANCE = 20.0 // Increased view distance
+    private const val LINE_DENSITY = 0.5 // More particles per line
+    private const val PARTICLE_HEIGHT_OFFSET = 1.2
+
+    // Colors for particles (REDSTONE needs Color object in extra data)
+    private val particleTypes = listOf(
+        Particle.FLAME,
+        Particle.END_ROD
+    )
+
+    private val random = Random()
+    private var particleAnimationTick = 0
 
     private val logger = MobWaves.instance.logger
 
@@ -86,6 +98,9 @@ object ZoneVisualizer {
                     return
                 }
 
+                // Update animation tick
+                particleAnimationTick = (particleAnimationTick + 1) % 40
+
                 for (player in world.players) {
                     displayOutlinesForPlayer(player, regionOutlines)
                 }
@@ -102,21 +117,76 @@ object ZoneVisualizer {
         for (outline in regionOutlines) {
             if (outline.size < 2) continue
 
+            // Check if player is near this outline before rendering
+            var nearOutline = false
+            for (point in outline) {
+                if (playerLoc.distanceSquared(point) <= viewDistanceSquared) {
+                    nearOutline = true
+                    break
+                }
+            }
+
+            if (!nearOutline) continue
+
+            // Draw outlines
             for (i in outline.indices) {
                 val start = outline[i]
                 val end = outline[(i + 1) % outline.size]
 
-                // Skip if both endpoints are too far
-                if (playerLoc.distanceSquared(start) > viewDistanceSquared &&
-                    playerLoc.distanceSquared(end) > viewDistanceSquared) {
-                    continue
-                }
-
                 // Draw line between points
                 createLineBetweenPoints(start, end, player.world).forEach { point ->
-                    player.world.spawnParticle(Particle.FLAME, point, 1, 0.0, 0.0, 0.0, 0.0)
+                    // Select particle based on animation tick
+                    val particleType = particleTypes[particleAnimationTick % particleTypes.size]
+
+                    // Spawn with slightly random offset for better visibility
+                    player.world.spawnParticle(
+                        particleType,
+                        point.x + (random.nextDouble() - 0.5) * 0.1,
+                        point.y + (random.nextDouble() - 0.5) * 0.1,
+                        point.z + (random.nextDouble() - 0.5) * 0.1,
+                        1, 0.0, 0.0, 0.0, 0.01
+                    )
                 }
             }
+
+            // Optional: Draw zone center marker
+            drawZoneCenter(outline, player.world)
+        }
+    }
+
+    private fun drawZoneCenter(outline: List<Location>, world: World) {
+        // Calculate center of the region
+        var centerX = 0.0
+        var centerZ = 0.0
+
+        outline.forEach {
+            centerX += it.x
+            centerZ += it.z
+        }
+
+        centerX /= outline.size
+        centerZ /= outline.size
+
+        // Find Y position
+        val centerY = findSuitableYPosition(world, centerX, centerZ) ?: return
+
+        // Draw a spiral at the center for emphasis
+        val time = System.currentTimeMillis() / 500.0
+        val radius = 1.5
+
+        for (i in 0 until 12) {
+            val angle = time + i * (Math.PI / 6)
+            val x = centerX + radius * cos(angle)
+            val z = centerZ + radius * sin(angle)
+
+            // Helix effect
+            val y = centerY + (i % 4) * 0.5
+
+            world.spawnParticle(
+                Particle.GLOW,
+                x, y, z,
+                1, 0.0, 0.0, 0.0, 0.0
+            )
         }
     }
 
@@ -128,13 +198,18 @@ object ZoneVisualizer {
         val distance = sqrt(dx * dx + dz * dz)
         val count = (distance / LINE_DENSITY).toInt().coerceAtLeast(1)
 
-        for (i in 0..count) {
-            val t = i.toDouble() / count
-            val x = start.x + dx * t
-            val z = start.z + dz * t
+        // Create two rows of particles at different heights
+        for (row in 0..1) {
+            val heightOffset = row * 0.5 // 0.5 blocks between rows
 
-            findSuitableYPosition(world, x, z)?.let { y ->
-                points.add(Location(world, x + 0.5, y, z + 0.5))
+            for (i in 0 until count) { // Changed to 'until count' to avoid end point
+                val t = i.toDouble() / count
+                val x = start.x + dx * t
+                val z = start.z + dz * t
+
+                // Use average height for smoother lines
+                val y = start.y + (end.y - start.y) * t + heightOffset
+                points.add(Location(world, x, y, z))
             }
         }
 
