@@ -1,7 +1,7 @@
 name: MobWaves
-version: '1.0'
+version: '1.1'
 main: dev.marten_mrfcyt.mobWaves.MobWaves
-api-version: '1.20'
+api-version: '1.21.4'
 prefix: MobWaves
 load: STARTUP
 authors: [ Marten_mrfcyt ]

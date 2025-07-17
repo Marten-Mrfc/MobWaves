@@ -148,45 +148,6 @@ object ZoneVisualizer {
                     )
                 }
             }
-
-            // Optional: Draw zone center marker
-            drawZoneCenter(outline, player.world)
-        }
-    }
-
-    private fun drawZoneCenter(outline: List<Location>, world: World) {
-        // Calculate center of the region
-        var centerX = 0.0
-        var centerZ = 0.0
-
-        outline.forEach {
-            centerX += it.x
-            centerZ += it.z
-        }
-
-        centerX /= outline.size
-        centerZ /= outline.size
-
-        // Find Y position
-        val centerY = findSuitableYPosition(world, centerX, centerZ) ?: return
-
-        // Draw a spiral at the center for emphasis
-        val time = System.currentTimeMillis() / 500.0
-        val radius = 1.5
-
-        for (i in 0 until 12) {
-            val angle = time + i * (Math.PI / 6)
-            val x = centerX + radius * cos(angle)
-            val z = centerZ + radius * sin(angle)
-
-            // Helix effect
-            val y = centerY + (i % 4) * 0.5
-
-            world.spawnParticle(
-                Particle.GLOW,
-                x, y, z,
-                1, 0.0, 0.0, 0.0, 0.0
-            )
         }
     }
 
